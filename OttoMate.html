@@ -258,7 +258,7 @@ function GCode() {
 			This is to ensure the Z-axis is free to move without
 			getting trapped in the vials or bumping the plungers.
 			*/
-			return moveZ(zUp, defaultSpeedZ, 'Needles up') + 'G28 ; Autohome\n';
+			return moveZ(zUp, defaultSpeedZ, 'Needles up') + moveXY(0, 0, defaultSpeedXY, 'Zero X and Y axes simultaneously to save time.') + 'G28 ; Autohome\n';
 		};
 		var moveZ = function(z, speed, comment) {
 			speed = (!speed ? needleSpeed : speed);
@@ -499,7 +499,7 @@ function GCode() {
 			<label for="tray2X">Tray 2 X-position:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Calibrated tray 2 X-position.');"></i>
 		</td>
 		<td>
-			<input id="tray2X" class="number" type="number" value="118.5" step=".1" min="1" max="150" onchange="gcode.getCode();"> mm
+			<input id="tray2X" class="number" type="number" value="119" step=".1" min="1" max="150" onchange="gcode.getCode();"> mm
 		</td>
 	</tr>
 	<tr>
