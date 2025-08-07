@@ -6,7 +6,6 @@
 <meta name="author" content="Keng Wooi Ng <keng.ng@newcastle.ac.uk">
 <meta name="description" content="G-code generator for Otto, the fluid handling robot.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://kit.fontawesome.com/6b43ca8539.js" crossorigin="anonymous"></script>
 <style>
 body {
 	font-family: Arial, Helvetica, sans-serif;
@@ -27,8 +26,10 @@ input[type=number] {
 	width: 75px;
 }
 
-.fa-info-circle {
+a.fa-info-circle {
 	color: #FF3300;
+	cursor: pointer;
+	font-weight: bold;
 }
 
 h1 {
@@ -92,12 +93,6 @@ input.number {
 </style>
 
 <script>
-window.onload = function() {
-	// Initialise G-code generator
-	gcode = new GCode();
-	gcode.getCode();
-};
-
 // Sample object
 var Sample = function(interval, intervalUnits) {
 	this.interval = interval;
@@ -131,20 +126,11 @@ function GCode() {
 	var stepY;
 	var zUp;
 	var zDown;
-	var dryInterval = 1;
-	var dryIntervalUnits = 1000;
-	var dryIntervalMs = dryInterval * dryIntervalUnits;
-	var dryDwellTime = 1;
-	var dryDwellTimeUnits = 1000;
-	var dryDwellTimeMs = dryDwellTime * dryDwellTimeUnits;
-	var dryRefillZ = 55; // 70;
-	var dryRefillStep = 0;
-	var dryRefillSpeed = 250;
-	var dryZDown = 25; // 50;
+	var skipRefill = false;
 	var rightMost = 100; // 210;
 	var ottomateUrl = document.location;
 	// Update user-defined defaults
-	var getDefaults = function() {
+	function getDefaults() {
 		mode = String(document.querySelector('#mode').value);
 		defaultInterval = Number(document.querySelector('#defaultInterval').value);
 		defaultIntervalUnits = Number(document.querySelector('#defaultIntervalUnits').value);
@@ -163,6 +149,16 @@ function GCode() {
 		startY = Number(document.querySelector('#startY').value) - stepY;
 		zUp = Number(document.querySelector('#zUp').value);
 		zDown = Number(document.querySelector('#zDown').value);
+		skipRefill = (document.querySelector("#skipRefill").checked);
+	};
+	
+	function loadProfiles() {
+		document.querySelector('#profiles').options.length = 0;
+		for (var i = 0; i < profiles.length; i++) {
+			var option = document.createElement('option');
+			option.text = profiles[i].buildId;
+			document.querySelector('#profiles').add(option);
+		}
 	};
 	// Function to add a sample to the sample list
 	this.addSample = function() {
@@ -191,24 +187,24 @@ function GCode() {
 		}
 	};
 	// Function to refresh the sample list
-	var refreshSampleList = function() {
+	function refreshSampleList() {
 		var html;
 		if (!samples.length) {
 			html = '<table><thead><tr><th>' +
 				'Start by adding a sample ' +
-				'<i class="fa fa-info-circle" aria-hidden="true" ' +
+				'<a class="fa fa-info-circle" ' +
 				'onclick="alert(\'Click the [Add sample] button below. ' +
 				'The default sampling parameters specified under Run Settings will be applied automatically to any new sample, ' +
-				'but you will be able to change them for each sample here.\');"></i>' +
+				'but you will be able to change them for each sample here.\');">&#9432;</a>' +
 				'</th></tr></thead></table>';
 		}
 		else {
 			html = '<table><thead><tr>' +
-				'<th># <i class="fa fa-info-circle" aria-hidden="true" ' +
+				'<th># <a class="fa fa-info-circle" ' +
 				'onclick="alert(\'You may add up to ' + maxSamples + ' sampling timepoints. ' +
-				'All samples are numbered automatically and sequentially by timepoint.\');"></i></th>' +
-				'<th>Interval <i class="fa fa-info-circle" aria-hidden="true" ' +
-				'onclick="alert(\'Amount of time to wait before taking the ' + ((mode == 'refill-sample') ? 'next' : 'current') + ' sample. You may also change where the interval occurs relative to the sampling event, by selecting a different run sequence under Run Settings.\');"></i></th>' +
+				'All samples are numbered automatically and sequentially by timepoint.\');">&#9432;</a></th>' +
+				'<th>Interval <a class="fa fa-info-circle" ' +
+				'onclick="alert(\'Amount of time to wait before taking the ' + ((mode == 'refill-sample') ? 'next' : 'current') + ' sample. You may also change where the interval occurs relative to the sampling event, by selecting a different run sequence under Run Settings.\');">&#9432;</a></th>' +
 				'<th>Action</th>' +
 				'</tr></thead><tbody>';
 			for (var i = 0 ; i < samples.length; i++) {
@@ -239,89 +235,98 @@ function GCode() {
 		samples[index].intervalUnits = Number(document.querySelector('#intervalUnits' + index).value);
 		this.getCode();
 	};
-	this.simulate = function() {
-		alert('This will generate the G-code to simulate the XYZ motions only. ' +
-			'Use this G-code for a dry run without performing any actual sampling or refilling.\n\n' +
-			'The following settings will apply to the dry run, irrespective of any custom settings you may have specified:\n\n' +
-			'Interval (all samples): ' + dryInterval + ' s\n' +
-			'Sampling duration: ' + dryDwellTime + ' s\n' +
-			'Refill baseline: ' + dryRefillZ + ' mm\n' +
-			'Refill step size: ' + dryRefillStep + ' mm\n' +
-			'Refill speed: ' + dryRefillSpeed + ' mm/min');
+	this.loadProfile = function(index) {
+		var profile = profiles[index];
+		for (var param in profile) {
+			var value = profile[param];
+			document.querySelector("#" + param).value = (isNaN(value) ? value : parseFloat(value).toFixed(1));
+		}
 	};
 	// Function to generate G-code
 	this.getCode = function() {
 		timestamp = new Date();
-		var autohome = function() {
+		function autohome() {
 			/*
 			Every autohome motion is preceded by a needle up motion.
 			This is to ensure the Z-axis is free to move without
 			getting trapped in the vials or bumping the plungers.
 			*/
-			return moveZ(zUp, defaultSpeedZ, 'Needles up') + moveXY(0, 0, defaultSpeedXY, 'Zero X and Y axes simultaneously to save time.') + 'G28 ; Autohome\n';
-		};
-		var moveZ = function(z, speed, comment) {
+			return moveZ(zUp, defaultSpeedZ, 'Needles up') 
+				+ moveXY(0, 0, defaultSpeedXY, 'Zero X and Y axes simultaneously to save time')
+				+ 'G28 ; Autohome\n';
+		}		
+		
+		function moveZ(z, speed, comment) {
 			speed = (!speed ? needleSpeed : speed);
 			return 'G0 Z' + z + ' F' + speed + ((comment) ? ' ; ' + comment : '') + '\n';
-		};
-		var moveXY = function(x, y, speed, comment) {
+		}
+		
+		function moveXY(x, y, speed, comment) {
 			speed = (!speed ? defaultSpeedXY : speed);
 			return 'G0 X' + x + ' Y' + y + ' F' + speed + ((comment) ? ' ; ' + comment : '') + '\n';
-		};
-		var needlesRight = function() {
+		}
+		
+		function needlesRight() {
 			return moveZ(zUp, defaultSpeedZ, 'Needles up') + moveXY(rightMost, 0, defaultSpeedXY, 'Move needles to the right');
-		};
-		var takeSample = function(i, x, y) {			
+		}
+		
+		function takeSample(i, x, y) {			
 			// Sampling routine
 			var code = '; ------------------------------\n';
 			code += '; Sample timepoint #' + eval(i + 1) + '\n';
 			code += autohome(); // Always reset positions before sampling by autohoming
 			code += moveZ(zUp, defaultSpeedZ, 'Raise needles'); // Move needles up
 			code += moveXY(x, y, defaultSpeedXY, 'Align needles with vials'); // Align needles with vials
-			code += moveZ((document.querySelector('#simulate').checked) ? dryZDown : zDown, defaultSpeedZ, 'Lower needles'); // Insert needles into vials
-			code += 'G4 P' + Number((document.querySelector('#simulate').checked) ? dryDwellTimeMs : dwellTimeMs) + ' ; Aspirate sample\n'; // Aspirate
+			code += moveZ(zDown, defaultSpeedZ, 'Lower needles'); // Insert needles into vials
+			code += 'G4 P' + Number(dwellTimeMs) + ' ; Aspirate sample\n'; // Aspirate
 			/*
 			No explicit needle up motion required after sampling because
 			the autohome routine will always perform a needle up motion.
 			*/
 			return code;
-		};
-		var refill = function(i) {
-			// Set refill positions
-			brakingZ = Number((document.querySelector('#simulate').checked) ? dryRefillZ - 2 : refillZ - 2);
-			refillZ += refillStep;
-			// Refilling routine
-			var code = '; ------------------------------\n';
-			code += '; Refill timepoint #' + eval(i + 1) + '\n';
-			code += autohome(); // Always reset position before refilling
-			code += needlesRight();
-			code += moveZ(brakingZ, defaultSpeedZ, 'Approach plungers'); // Move quickly to just below plungers
-			code += moveZ(
-				Number((document.querySelector('#simulate').checked) ? dryRefillZ : refillZ), 
-				Number((document.querySelector('#simulate').checked) ? dryRefillSpeed : refillSpeed),
-				'Push plungers'
-			); // Move slowly to push plungers
-			/*
-			Leave the Z-axis where it is during the post-sample interval
-			to indicate the experiment is still in progress.
-			This will also allow any Z-slipping to be detected.
-			*/
+		}
+		
+		function refill(i) {
+			var code = '';
+			if (!skipRefill) {
+				// Set refill positions
+				brakingZ = Number(refillZ - 2);
+				refillZ += refillStep;
+				// Refilling routine
+				code += '; ------------------------------\n';
+				code += '; Refill timepoint #' + eval(i + 1) + '\n';
+				code += autohome(); // Always reset position before refilling
+				code += needlesRight();
+				code += moveZ(brakingZ, defaultSpeedZ, 'Approach plungers'); // Move quickly to just below plungers
+				code += moveZ(
+					Number(refillZ), 
+					Number(refillSpeed),
+					'Push plungers'
+				); // Move slowly to push plungers
+				/*
+				Leave the Z-axis where it is during the post-sample interval
+				to indicate the experiment is still in progress.
+				This will also allow any Z-slipping to be detected.
+				*/
+			}
 			return code;
-		};
-		var calibrateZ = function() {
+		}
+		
+		function calibrateZ() {
 			var code = 
 		  '; ------------------------------\n' +
 		  'G90 ; Use absolute coordinates\n' +
 		  'G28 ; Autohome\n' +
 		  needlesRight() +
 		  moveZ(defaultBrakingZ, defaultSpeedZ, 'Approach syringes') +
-		  moveZ(Number((document.querySelector('#simulate').checked) ? dryRefillZ : defaultRefillZ),
-		    Number((document.querySelector('#simulate').checked) ? dryRefillSpeed : refillSpeed),
+		  moveZ(Number(defaultRefillZ),
+		    Number(refillSpeed),
 		    'Push plungers'); // Move slowly to push plungers
 			return code;
-		};
+		}
 		
 		
+		loadProfiles();
 		// Get user-defined defaults
 		getDefaults();
 		// Reset hard-coded parameters
@@ -335,11 +340,6 @@ function GCode() {
 		
 		// G-code preamble
 		var code = '; G-code for sampling and refilling.\n';
-		if (document.querySelector('#simulate').checked) {
-			code += '; **********************************\n';
-			code += '; THIS IS A DRY RUN/SIMULATION ONLY.\n';
-			code += '; **********************************\n';
-		}
 		code += '; Created: ' + timestamp + '\n' +
 		  '; Do not edit this file manually.\n' +
 		  '; Use the G-code generator instead:\n' +
@@ -359,7 +359,7 @@ function GCode() {
 			intervalMs = (samples[i].interval * samples[i].intervalUnits);
 			code += '; ------------------------------\n';
 			code += '; Interval\n';
-			code += 'G4 P' + Number((document.querySelector('#simulate').checked) ? dryIntervalMs : intervalMs) + '\n';
+			code += 'G4 P' + Number(intervalMs) + '\n';
 
 			if (mode == "refill-sample") {				
 				code += refill(i);
@@ -384,6 +384,7 @@ function GCode() {
 		  calibrateZ() + 
 		  autohome();
 	};
+	
 	// Function to copy G-code to system clipboard
 	async function copyToClipboard(content) {
 		try {
@@ -394,16 +395,11 @@ function GCode() {
 		}
 	};
 	this.copy = copyToClipboard;
+	
 	this.download = function(element, content) {
-		var year = timestamp.getFullYear();
-		var month = timestamp.getMonth() + 1;
-		var date = timestamp.getDate();
-		var hours = timestamp.getHours();
-		var minutes = timestamp.getMinutes();
-		var seconds = timestamp.getSeconds();
 		var title = prompt('G-code description:');		
 		title = (!title) ? 'Otto' : title;
-		fileName = year + '-' + (month < 10 ? '0' + month : month) + '-' + (date < 10 ? '0' + date : date) +  '_' + (hours < 10 ? '0' + hours : hours) + (minutes < 10 ? '0' + minutes : minutes) + (seconds < 10 ? '0' + seconds : seconds) + ' ' + title + '.gcode' 
+		fileName = title + '.gcode' 
 		document.querySelector(element).href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(document.querySelector(content).innerText);
 		document.querySelector(element).download = fileName;
 		document.querySelector(element).click();
@@ -411,9 +407,111 @@ function GCode() {
 	
 }
 
+var profiles = [
+	{'buildId': 'Default',
+		'startX': 14.5,
+		'tray2X': 119.0,
+		'startY': 63.0,
+		'stepY': 19.0,
+		'zUp': 27.0,
+		'zDown': 6.0
+		},
+	{'buildId': '0884',
+		'startX': 14.5,
+		'tray2X': 119.2,
+		'startY': 63.0,
+		'stepY': 18.9,
+		'zUp': 27.0,
+		'zDown': 6.0
+		},
+	{'buildId': '4002',
+		'startX': 14.5,
+		'tray2X': 119.0,
+		'startY': 63.0,
+		'stepY': 19.0,
+		'zUp': 27.0,
+		'zDown': 6.0
+		}
+];
+
+function init() {
+	// Initialise G-code generator
+	gcode = new GCode();
+	gcode.getCode();
+};
+
+window.onload = init;
+
 </script>
 </head>
 <body>
+
+
+<div class="settings">
+<h1>Calibration</h1>
+<table>
+	<tbody>
+	<tr>
+		<td style="width: 180px;">
+			<label for="profile">Load preset profile:</label> <a class="fa fa-info-circle" onclick="alert('Load the hardcorded calibration parameters for a specific build. The profile ID corresponds to the last 4 digits of the gantry\'s serial number.');">&#9432;</a>
+		</td>
+		<td>
+			<select id="profiles" onchange="gcode.loadProfile(this.selectedIndex);"></select>
+			<input type="hidden" id="buildId">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<label for="startX">Tray 1 X-position:</label> <a class="fa fa-info-circle" onclick="alert('Calibrated X position for sampling point 1.');">&#9432;</a>
+		</td>
+		<td>
+			<input id="startX" class="number" type="number" value="14.5" placeholder="0.0" min="1" max="20" step=".1" onchange="gcode.getCode();"> mm
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<label for="tray2X">Tray 2 X-position:</label> <a class="fa fa-info-circle" onclick="alert('Calibrated tray 2 X-position.');">&#9432;</a>
+		</td>
+		<td>
+			<input id="tray2X" class="number" type="number" value="119.0" placeholder="0.0" step=".1" min="1" max="150" onchange="gcode.getCode();"> mm
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<label for="startY">Starting Y-position:</label> <a class="fa fa-info-circle" onclick="alert('Calibrated X position for sampling point 1.');">&#9432;</a>
+		</td>
+		<td>
+			<input id="startY" class="number" type="number" value="63.0" placeholder="0.0" step=".1" min="1" max="70" onchange="gcode.getCode();"> mm
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<label for="stepY">Y increment:</label> <a class="fa fa-info-circle" onclick="alert('Increment in Y-position from one sample to the next.');">&#9432;</a>
+		</td>
+		<td>
+			<input id="stepY" class="number" type="number" value="19.0" placeholder="0.0" step=".1" min="1" max="25" onchange="gcode.getCode();"> mm
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<label for="zUp">Needle up position:</label> <a class="fa fa-info-circle" onclick="alert('Z-position when needles are above sample vials.');">&#9432;</a>
+		</td>
+		<td>
+			<input id="zUp" class="number" type="number" value="27.0" placeholder="0.0" step=".1" min="1" max="35" onchange="gcode.getCode();"> mm
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<label for="zDown">Needle down position:</label> <a class="fa fa-info-circle" onclick="alert('Z-position when needles are in sample vials.');">&#9432;</a>
+		</td>
+		<td>
+			<input id="zDown" class="number" type="number" value="6.0" placeholder="0.0" step=".1" min="1" max="15" onchange="gcode.getCode();"> mm
+		</td>
+	</tr>
+	</tbody>
+</table>
+</div>
+
 <div class="settings">
 
 <h1>Run Settings</h1>
@@ -422,7 +520,7 @@ function GCode() {
 	<tbody>
 	<tr>
 		<td style="width: 180px;">
-			<label for="mode">Run sequence:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Each sequence is preceeded by an interval. This applies to the entire run. You cannot change it per sample.');"></i>
+			<label for="mode">Run sequence:</label> <a class="fa fa-info-circle" onclick="alert('Each sequence is preceeded by an interval. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<select id="mode" onchange="gcode.getCode();">
@@ -433,7 +531,7 @@ function GCode() {
 	</tr>
 	<tr>
 		<td>
-			<label for="defaultInterval">Default interval:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('The amount of time to wait before/after taking a sample. This will be applied to any new sample you add, but you will be able to change it per sample later.');"></i>
+			<label for="defaultInterval">Default interval:</label> <a class="fa fa-info-circle" onclick="alert('The amount of time to wait before/after taking a sample. This will be applied to any new sample you add, but you will be able to change it per sample later.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="defaultInterval" class="number" type="number" value="1" min="1" onchange="gcode.getCode();">
@@ -446,7 +544,7 @@ function GCode() {
 	</tr>
 	<tr>
 		<td>
-			<label for="dwellTime">Sampling duration:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('The sample will be aspirated for this amount of time. This applies to all samples in the run. You cannot change it per sample.');"></i>
+			<label for="dwellTime">Sampling duration:</label> <a class="fa fa-info-circle" onclick="alert('The sample will be aspirated for this amount of time. This applies to all samples in the run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="dwellTime" class="number" type="number" value="30" min="1" onchange="gcode.getCode();">
@@ -459,7 +557,7 @@ function GCode() {
 	</tr>
 	<tr>
 		<td>
-			<label for="refillZ">Refill baseline:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Plunger position before the first refill. This applies to the entire run. You cannot change it per sample.');"></i>
+			<label for="refillZ">Refill baseline:</label> <a class="fa fa-info-circle" onclick="alert('Plunger position before the first refill. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="refillZ" class="number" type="number" value="60" min="60" onchange="gcode.getCode();"> mm
@@ -467,7 +565,7 @@ function GCode() {
 	</tr>
 	<tr>
 		<td>
-			<label for="refillStep">Refill step size:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('This determines the refill volume. It applies to the entire run. You cannot change it per sample.');"></i>
+			<label for="refillStep">Refill step size:</label> <a class="fa fa-info-circle" onclick="alert('This determines the refill volume. It applies to the entire run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="refillStep" class="number" type="number" value="2" min="0" onchange="gcode.getCode();"> mm
@@ -475,7 +573,7 @@ function GCode() {
 	</tr>		
 	<tr>
 		<td>
-			<label for="refillSpeed">Refill speed:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('A high refill speed may cause excessive resistance with narrow-gauge refill needles. This applies to the entire run. You cannot change it per sample.');"></i>
+			<label for="refillSpeed">Refill speed:</label> <a class="fa fa-info-circle" onclick="alert('A high refill speed may cause excessive resistance with narrow-gauge refill needles. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="refillSpeed" class="number" type="number" value="50" min="1" max="500" onchange="gcode.getCode();"> mm/min
@@ -483,60 +581,7 @@ function GCode() {
 	</tr>
 	</tbody>
 </table>
-<h1>Calibration</h1>
-<table>
-	<tbody>
-	<tr>
-		<td style="width: 180px;">
-			<label for="startX">Tray 1 X-position:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Calibrated X position for sampling point 1.');"></i>
-		</td>
-		<td>
-			<input id="startX" class="number" type="number" value="14.5" min="1" max="20" step=".1" onchange="gcode.getCode();"> mm
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<label for="tray2X">Tray 2 X-position:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Calibrated tray 2 X-position.');"></i>
-		</td>
-		<td>
-			<input id="tray2X" class="number" type="number" value="119" step=".1" min="1" max="150" onchange="gcode.getCode();"> mm
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<label for="startY">Starting Y-position:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Calibrated X position for sampling point 1.');"></i>
-		</td>
-		<td>
-			<input id="startY" class="number" type="number" value="63.0" step=".1" min="1" max="70" onchange="gcode.getCode();"> mm
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<label for="stepY">Y increment:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Increment in Y-position from one sample to the next.');"></i>
-		</td>
-		<td>
-			<input id="stepY" class="number" type="number" value="19.0" step=".1" min="1" max="25" onchange="gcode.getCode();"> mm
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<label for="zUp">Needle up position:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Z-position when needles are above sample vials.');"></i>
-		</td>
-		<td>
-			<input id="zUp" class="number" type="number" value="27.0" step=".1" min="1" max="35" onchange="gcode.getCode();"> mm
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<label for="zDown">Needle down position:</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="alert('Z-position when needles are in sample vials.');"></i>
-		</td>
-		<td>
-			<input id="zDown" class="number" type="number" value="6.0" step=".1" min="1" max="15" onchange="gcode.getCode();"> mm
-		</td>
-	</tr>
-	</tbody>
-</table>
-<p><input type="reset" value="Use default" onclick="return confirm('Reset all parameters to default values?');"></p>
+<p><input type="reset" value="Use default" onclick="return (confirm('Reset all parameters to their default values?'));"></p>
 </form>
 </div>
 
@@ -573,7 +618,7 @@ function GCode() {
 	<div id="gcode"></div>
 	<div>
 	<a id="downloadLink"></a>
-	<p><input type="checkbox" id="simulate" onchange="gcode.getCode();"> <label for="simulate">Dry run only</label> <i class="fa fa-info-circle" aria-hidden="true" onclick="gcode.simulate();"></i></p>
+	<p><input type="checkbox" id="skipRefill" onchange="gcode.getCode();"> <label for="skipRefill">Skip refill</label> <a class="fa fa-info-circle" onclick="alert('Perform only the sampling motion, do not perform the refilling motion.\n\nIntended for use with a simulated run only (e.g., to verify needle-vial alignment). You most likely do not want to enable this for an actual experiment.');">&#9432;</a></p>
 	<p>
 	<input id="copyGCodeButton" type="button" value="Copy" onclick="gcode.copy('#gcode');">
 	<input id="downloadButton" type="button" value="Download" onclick="gcode.download('#downloadLink', '#gcode');">
