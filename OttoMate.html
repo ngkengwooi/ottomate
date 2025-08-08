@@ -398,30 +398,24 @@ function GCode() {
 }
 
 var profiles = [
-	{'buildId': 'Default',
-		'startX': 14.5,
-		'tray2X': 119.0,
-		'startY': 63.0,
-		'stepY': 19.0,
-		'zUp': 27.0,
-		'zDown': 6.0
-		},
-	{'buildId': '0884',
+	{
+		'buildId': '0884',
 		'startX': 14.5,
 		'tray2X': 119.2,
 		'startY': 63.0,
 		'stepY': 18.9,
 		'zUp': 27.0,
 		'zDown': 6.0
-		},
-	{'buildId': '4002',
+	},
+	{
+		'buildId': '4002',
 		'startX': 14.5,
 		'tray2X': 119.0,
 		'startY': 63.0,
 		'stepY': 19.0,
 		'zUp': 27.0,
 		'zDown': 6.0
-		}
+	}
 ];
 
 function init() {
@@ -463,7 +457,7 @@ window.onload = init;
 			<label for="tray2X">Tray 2 X-position:</label> <a class="fa info" onclick="alert('Calibrated tray 2 X-position.');">&#9432;</a>
 		</td>
 		<td>
-			<input id="tray2X" class="number" type="number" value="119.0" placeholder="0.0" step=".1" min="1" max="150" onchange="gcode.getCode();"> mm
+			<input id="tray2X" class="number" type="number" value="119.2" placeholder="0.0" step=".1" min="1" max="150" onchange="gcode.getCode();"> mm
 		</td>
 	</tr>
 	<tr>
@@ -479,7 +473,7 @@ window.onload = init;
 			<label for="stepY">Y increment:</label> <a class="fa info" onclick="alert('Increment in Y-position from one sample to the next.');">&#9432;</a>
 		</td>
 		<td>
-			<input id="stepY" class="number" type="number" value="19.0" placeholder="0.0" step=".1" min="1" max="25" onchange="gcode.getCode();"> mm
+			<input id="stepY" class="number" type="number" value="18.9" placeholder="0.0" step=".1" min="1" max="25" onchange="gcode.getCode();"> mm
 		</td>
 	</tr>
 	<tr>
