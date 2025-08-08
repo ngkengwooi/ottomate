@@ -437,7 +437,7 @@ window.onload = init;
 	<tbody>
 	<tr>
 		<td style="width: 200px;">
-			<label for="profile">Load preset profile:</label> <a class="fa info" onclick="alert('Load the hardcorded calibration parameters for a specific build. The profile ID corresponds to the last 4 digits of the gantry\'s serial number.');">&#9432;</a>
+			<label for="profile">Load preset profile:</label> <a class="fa info" onclick="alert('Load the hardcorded calibration parameters for a specific build. The profile ID corresponds to the last 4 digits of the gantry\'s serial number.\n\nIrrespective of the loaded profile, you can modify each calibration parameter as needed. The preset profiles are read-only and will not be overwritten.');">&#9432;</a>
 		</td>
 		<td>
 			<select id="profiles" onchange="gcode.loadProfile(this.selectedIndex);"></select>
