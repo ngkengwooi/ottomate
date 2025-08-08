@@ -8,13 +8,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: sans-serif;
 	font-size: 12pt;
 	text-align: center;
 }
 
 input, select {
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: sans-serif;
 	font-size: 12pt;
 }
 
@@ -105,7 +105,6 @@ function GCode() {
 	var defaultInterval;
 	var defaultIntervalUnits;
 	var defaultIntervalMs;
-	var mode;
 	var refillZ;
 	var refillStep;
 	var dwellTime;
@@ -131,7 +130,6 @@ function GCode() {
 	var ottomateUrl = document.location;
 	// Update user-defined defaults
 	function getDefaults() {
-		mode = String(document.querySelector('#mode').value);
 		defaultInterval = Number(document.querySelector('#defaultInterval').value);
 		defaultIntervalUnits = Number(document.querySelector('#defaultIntervalUnits').value);
 		defaultIntervalMs = Number(defaultInterval * defaultIntervalUnits);
@@ -204,7 +202,7 @@ function GCode() {
 				'onclick="alert(\'You may add up to ' + maxSamples + ' sampling timepoints. ' +
 				'All samples are numbered automatically and sequentially by timepoint.\');">&#9432;</a></th>' +
 				'<th>Interval <a class="fa fa-info-circle" ' +
-				'onclick="alert(\'Amount of time to wait before taking the ' + ((mode == 'refill-sample') ? 'next' : 'current') + ' sample. You may also change where the interval occurs relative to the sampling event, by selecting a different run sequence under Run Settings.\');">&#9432;</a></th>' +
+				'onclick="alert(\'Amount of time to wait before taking the sample.\');">&#9432;</a></th>' +
 				'<th>Action</th>' +
 				'</tr></thead><tbody>';
 			for (var i = 0 ; i < samples.length; i++) {
@@ -360,16 +358,8 @@ function GCode() {
 			code += '; ------------------------------\n';
 			code += '; Interval\n';
 			code += 'G4 P' + Number(intervalMs) + '\n';
-
-			if (mode == "refill-sample") {				
-				code += refill(i);
-				code += takeSample(i, x, y);
-			}
-			else {
-				code += takeSample(i, x, y);
-				code += refill(i);
-			}
-			
+			code += takeSample(i, x, y);
+			code += refill(i);
 		}
 		code += '; ------------------------------\n';
 		code += '; All done\n';
@@ -452,7 +442,7 @@ window.onload = init;
 <table>
 	<tbody>
 	<tr>
-		<td style="width: 180px;">
+		<td style="width: 200px;">
 			<label for="profile">Load preset profile:</label> <a class="fa fa-info-circle" onclick="alert('Load the hardcorded calibration parameters for a specific build. The profile ID corresponds to the last 4 digits of the gantry\'s serial number.');">&#9432;</a>
 		</td>
 		<td>
@@ -519,18 +509,7 @@ window.onload = init;
 <table>
 	<tbody>
 	<tr>
-		<td style="width: 180px;">
-			<label for="mode">Run sequence:</label> <a class="fa fa-info-circle" onclick="alert('Each sequence is preceeded by an interval. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
-		</td>
-		<td>
-			<select id="mode" onchange="gcode.getCode();">
-				<option value="sample-refill">Interval → Sample → refill</option>
-				<option value="refill-sample">Interval → Refill → sample</option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td>
+		<td style="width: 200px;">
 			<label for="defaultInterval">Default interval:</label> <a class="fa fa-info-circle" onclick="alert('The amount of time to wait before/after taking a sample. This will be applied to any new sample you add, but you will be able to change it per sample later.');">&#9432;</a>
 		</td>
 		<td>
@@ -618,7 +597,7 @@ window.onload = init;
 	<div id="gcode"></div>
 	<div>
 	<a id="downloadLink"></a>
-	<p><input type="checkbox" id="skipRefill" onchange="gcode.getCode();"> <label for="skipRefill">Skip refill</label> <a class="fa fa-info-circle" onclick="alert('Perform only the sampling motion, do not perform the refilling motion.\n\nIntended for use with a simulated run only (e.g., to verify needle-vial alignment). You most likely do not want to enable this for an actual experiment.');">&#9432;</a></p>
+	<p><input type="checkbox" id="skipRefill" onchange="gcode.getCode();"> <label for="skipRefill">Skip refill</label> <a class="fa fa-info-circle" onclick="alert('Perform only the sampling motion. If this option is enabled, Otto will not perform the refilling motion.\n\nIntended for use with a simulated run only (e.g., to verify needle-vial alignment). You most likely do not want to enable this for an actual experiment.');">&#9432;</a></p>
 	<p>
 	<input id="copyGCodeButton" type="button" value="Copy" onclick="gcode.copy('#gcode');">
 	<input id="downloadButton" type="button" value="Download" onclick="gcode.download('#downloadLink', '#gcode');">
