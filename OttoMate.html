@@ -26,7 +26,7 @@ input[type=number] {
 	width: 75px;
 }
 
-a.fa-info-circle {
+a.info {
 	color: #FF3300;
 	cursor: pointer;
 	font-weight: bold;
@@ -190,7 +190,7 @@ function GCode() {
 		if (!samples.length) {
 			html = '<table><thead><tr><th>' +
 				'Start by adding a sample ' +
-				'<a class="fa fa-info-circle" ' +
+				'<a class="fa info" ' +
 				'onclick="alert(\'Click the [Add sample] button below. ' +
 				'The default sampling parameters specified under Run Settings will be applied automatically to any new sample, ' +
 				'but you will be able to change them for each sample here.\');">&#9432;</a>' +
@@ -198,10 +198,10 @@ function GCode() {
 		}
 		else {
 			html = '<table><thead><tr>' +
-				'<th># <a class="fa fa-info-circle" ' +
+				'<th># <a class="fa info" ' +
 				'onclick="alert(\'You may add up to ' + maxSamples + ' sampling timepoints. ' +
 				'All samples are numbered automatically and sequentially by timepoint.\');">&#9432;</a></th>' +
-				'<th>Interval <a class="fa fa-info-circle" ' +
+				'<th>Interval <a class="fa info" ' +
 				'onclick="alert(\'Amount of time to wait before taking the sample.\');">&#9432;</a></th>' +
 				'<th>Action</th>' +
 				'</tr></thead><tbody>';
@@ -443,7 +443,7 @@ window.onload = init;
 	<tbody>
 	<tr>
 		<td style="width: 200px;">
-			<label for="profile">Load preset profile:</label> <a class="fa fa-info-circle" onclick="alert('Load the hardcorded calibration parameters for a specific build. The profile ID corresponds to the last 4 digits of the gantry\'s serial number.');">&#9432;</a>
+			<label for="profile">Load preset profile:</label> <a class="fa info" onclick="alert('Load the hardcorded calibration parameters for a specific build. The profile ID corresponds to the last 4 digits of the gantry\'s serial number.');">&#9432;</a>
 		</td>
 		<td>
 			<select id="profiles" onchange="gcode.loadProfile(this.selectedIndex);"></select>
@@ -452,7 +452,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="startX">Tray 1 X-position:</label> <a class="fa fa-info-circle" onclick="alert('Calibrated X position for sampling point 1.');">&#9432;</a>
+			<label for="startX">Tray 1 X-position:</label> <a class="fa info" onclick="alert('Calibrated X position for sampling point 1.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="startX" class="number" type="number" value="14.5" placeholder="0.0" min="1" max="20" step=".1" onchange="gcode.getCode();"> mm
@@ -460,7 +460,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="tray2X">Tray 2 X-position:</label> <a class="fa fa-info-circle" onclick="alert('Calibrated tray 2 X-position.');">&#9432;</a>
+			<label for="tray2X">Tray 2 X-position:</label> <a class="fa info" onclick="alert('Calibrated tray 2 X-position.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="tray2X" class="number" type="number" value="119.0" placeholder="0.0" step=".1" min="1" max="150" onchange="gcode.getCode();"> mm
@@ -468,7 +468,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="startY">Starting Y-position:</label> <a class="fa fa-info-circle" onclick="alert('Calibrated X position for sampling point 1.');">&#9432;</a>
+			<label for="startY">Starting Y-position:</label> <a class="fa info" onclick="alert('Calibrated X position for sampling point 1.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="startY" class="number" type="number" value="63.0" placeholder="0.0" step=".1" min="1" max="70" onchange="gcode.getCode();"> mm
@@ -476,7 +476,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="stepY">Y increment:</label> <a class="fa fa-info-circle" onclick="alert('Increment in Y-position from one sample to the next.');">&#9432;</a>
+			<label for="stepY">Y increment:</label> <a class="fa info" onclick="alert('Increment in Y-position from one sample to the next.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="stepY" class="number" type="number" value="19.0" placeholder="0.0" step=".1" min="1" max="25" onchange="gcode.getCode();"> mm
@@ -484,7 +484,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="zUp">Needle up position:</label> <a class="fa fa-info-circle" onclick="alert('Z-position when needles are above sample vials.');">&#9432;</a>
+			<label for="zUp">Needle up position:</label> <a class="fa info" onclick="alert('Z-position when needles are above sample vials.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="zUp" class="number" type="number" value="27.0" placeholder="0.0" step=".1" min="1" max="35" onchange="gcode.getCode();"> mm
@@ -492,7 +492,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="zDown">Needle down position:</label> <a class="fa fa-info-circle" onclick="alert('Z-position when needles are in sample vials.');">&#9432;</a>
+			<label for="zDown">Needle down position:</label> <a class="fa info" onclick="alert('Z-position when needles are in sample vials.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="zDown" class="number" type="number" value="6.0" placeholder="0.0" step=".1" min="1" max="15" onchange="gcode.getCode();"> mm
@@ -510,7 +510,7 @@ window.onload = init;
 	<tbody>
 	<tr>
 		<td style="width: 200px;">
-			<label for="defaultInterval">Default interval:</label> <a class="fa fa-info-circle" onclick="alert('The amount of time to wait before/after taking a sample. This will be applied to any new sample you add, but you will be able to change it per sample later.');">&#9432;</a>
+			<label for="defaultInterval">Default interval:</label> <a class="fa info" onclick="alert('The amount of time to wait before/after taking a sample. This will be applied to any new sample you add, but you will be able to change it per sample later.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="defaultInterval" class="number" type="number" value="1" min="1" onchange="gcode.getCode();">
@@ -523,7 +523,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="dwellTime">Sampling duration:</label> <a class="fa fa-info-circle" onclick="alert('The sample will be aspirated for this amount of time. This applies to all samples in the run. You cannot change it per sample.');">&#9432;</a>
+			<label for="dwellTime">Sampling duration:</label> <a class="fa info" onclick="alert('The sample will be aspirated for this amount of time. This applies to all samples in the run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="dwellTime" class="number" type="number" value="30" min="1" onchange="gcode.getCode();">
@@ -536,7 +536,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="refillZ">Refill baseline:</label> <a class="fa fa-info-circle" onclick="alert('Plunger position before the first refill. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
+			<label for="refillZ">Refill baseline:</label> <a class="fa info" onclick="alert('Plunger position before the first refill. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="refillZ" class="number" type="number" value="60" min="60" onchange="gcode.getCode();"> mm
@@ -544,7 +544,7 @@ window.onload = init;
 	</tr>
 	<tr>
 		<td>
-			<label for="refillStep">Refill step size:</label> <a class="fa fa-info-circle" onclick="alert('This determines the refill volume. It applies to the entire run. You cannot change it per sample.');">&#9432;</a>
+			<label for="refillStep">Refill step size:</label> <a class="fa info" onclick="alert('This determines the refill volume. It applies to the entire run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="refillStep" class="number" type="number" value="2" min="0" onchange="gcode.getCode();"> mm
@@ -552,7 +552,7 @@ window.onload = init;
 	</tr>		
 	<tr>
 		<td>
-			<label for="refillSpeed">Refill speed:</label> <a class="fa fa-info-circle" onclick="alert('A high refill speed may cause excessive resistance with narrow-gauge refill needles. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
+			<label for="refillSpeed">Refill speed:</label> <a class="fa info" onclick="alert('A high refill speed may cause excessive resistance with narrow-gauge refill needles. This applies to the entire run. You cannot change it per sample.');">&#9432;</a>
 		</td>
 		<td>
 			<input id="refillSpeed" class="number" type="number" value="50" min="1" max="500" onchange="gcode.getCode();"> mm/min
@@ -597,7 +597,7 @@ window.onload = init;
 	<div id="gcode"></div>
 	<div>
 	<a id="downloadLink"></a>
-	<p><input type="checkbox" id="skipRefill" onchange="gcode.getCode();"> <label for="skipRefill">Skip refill</label> <a class="fa fa-info-circle" onclick="alert('Perform only the sampling motion. If this option is enabled, Otto will not perform the refilling motion.\n\nIntended for use with a simulated run only (e.g., to verify needle-vial alignment). You most likely do not want to enable this for an actual experiment.');">&#9432;</a></p>
+	<p><input type="checkbox" id="skipRefill" onchange="gcode.getCode();"> <label for="skipRefill">Skip refill</label> <a class="fa info" onclick="alert('Perform only the sampling motion. If this option is enabled, Otto will not perform the refilling motion.\n\nIntended for use with a simulated run only (e.g., to verify needle-vial alignment). You most likely do not want to enable this for an actual experiment.');">&#9432;</a></p>
 	<p>
 	<input id="copyGCodeButton" type="button" value="Copy" onclick="gcode.copy('#gcode');">
 	<input id="downloadButton" type="button" value="Download" onclick="gcode.download('#downloadLink', '#gcode');">
