@@ -18,4 +18,4 @@ To learn more about Otto, please read the following academic papers. If have use
 - Chan HKY, Archbold L, Lau WM, Ng KW. Validating Otto: a Franz diffusion cell autosampler to automate in vitro permeation studies, J Pharm Sci. 2025;114(7):103837. https://doi.org/10.1016/j.xphs.2025.103837
 - Ng KW. Design files for Otto, the Franz diffusion cell autosampling robot. Mendeley Data. https://doi.org/10.17632/cvc9vxjgn9
 
-There is are also [these YouTube videos](https://www.youtube.com/embed/videoseries?si=h9Szg3ewY1guQh0S&list=PLiepgG4ZHWirRBnsqybRGd7GoXulaojsg) about Otto.
+There is are also [these YouTube videos](https://www.youtube.com/watch?list=PLiepgG4ZHWirRBnsqybRGd7GoXulaojsg) about Otto.
