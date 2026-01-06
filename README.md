@@ -6,7 +6,7 @@ OttoMate is the companion app for Otto, the Franz diffusion cell autosampler rob
 
 I wrote OttoMate as a browser-based app to maximise portability. It's just a static HTML file with JavaScript. It can be hosted on a web server, or opened as a local file on a client computer. It can be run in any modern web browser on any hardware that supports the web browser.
 
-The initial release (v1.0) coincided with the publication of the paper that described how Otto was put together (Ng et al., 2025, see below). If you have assembled Otto based on the description in that paper, you should use release v1.0. Later versions may not be compatible with that particular hardware configuration.
+The initial release (v1.0) coincided with the publication of the paper that describes how Otto was put together (Ng et al., 2026, see below). If you have assembled Otto based on the description in that paper, you should use release v1.0. Later versions may not be compatible with that particular hardware configuration.
 
 ## What is Otto?
 
