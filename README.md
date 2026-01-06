@@ -14,7 +14,7 @@ Otto was conceived and developed as part of an academic resesarch project to aut
 
 To learn more about Otto, please read the following academic papers. If have used Otto in your work, please cite these papers when publishing said work:
 
-- Ng KW, Archbold L, Lau WM. Building Otto: An open-source Franz diffusion cell autosampler for automating in vitro skin permeation studies. HardwareX, 2025. https://doi.org/10.1016/j.ohx.2025.e00735
+- Ng KW, Archbold L, Lau WM. Building Otto: An open-source Franz diffusion cell autosampler for automating in vitro skin permeation studies. HardwareX, 2026;25:e00735. https://doi.org/10.1016/j.ohx.2025.e00735
 - Chan HKY, Archbold L, Lau WM, Ng KW. Validating Otto: a Franz diffusion cell autosampler to automate in vitro permeation studies, J Pharm Sci. 2025;114(7):103837. https://doi.org/10.1016/j.xphs.2025.103837
 - Ng KW. Design files for Otto, the Franz diffusion cell autosampling robot. Mendeley Data. https://doi.org/10.17632/cvc9vxjgn9
 
