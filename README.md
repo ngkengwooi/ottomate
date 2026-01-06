@@ -12,7 +12,7 @@ The initial release (v1.0) coincided with the publication of the paper that desc
 
 Otto was conceived and developed as part of an academic resesarch project to automate laboratory workflow. As a scientist, I develop pharmaceutical formulations for the skin. The Franz diffusion cell is a laboratory apparatus used to evaluate drug absorption in the skin. It is usually operated manually, which comes with some drawbacks. My team and I developed Otto to overcome those limitations.
 
-To learn more about Otto, please read the following academic papers. If have used Otto in your work, please cite these papers when publishing said work:
+To learn more about Otto, please read the following academic papers. If you have used Otto in your work, please cite these papers when publishing said work:
 
 - Ng KW, Archbold L, Lau WM. Building Otto: An open-source Franz diffusion cell autosampler for automating in vitro skin permeation studies. HardwareX, 2026;25:e00735. https://doi.org/10.1016/j.ohx.2025.e00735
 - Chan HKY, Archbold L, Lau WM, Ng KW. Validating Otto: a Franz diffusion cell autosampler to automate in vitro permeation studies, J Pharm Sci. 2025;114(7):103837. https://doi.org/10.1016/j.xphs.2025.103837
